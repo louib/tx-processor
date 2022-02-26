@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use crate::transaction::{Transaction, TransactionType};
 
 pub struct Account {
@@ -8,6 +10,10 @@ pub struct Account {
     held: f64,
 
     locked: bool,
+
+    // A cache of the transactions that were processed
+    // for this account.
+    pub transactions: BTreeMap<String, Transaction>,
 }
 impl Account {
     pub fn process_transaction(&mut self, tx: Transaction) -> Result<(), String> {
@@ -22,7 +28,10 @@ impl Account {
                 }
                 self.available -= tx.amount as f64;
             }
-            TransactionType::Dispute => {}
+            TransactionType::Dispute => {
+
+
+            }
             TransactionType::Resolve => {}
             TransactionType::Chargeback => {}
         };
@@ -44,6 +53,7 @@ mod tests {
             held: 0.0,
             available: 0.0,
             locked: false,
+            transactions: BTreeMap::new(),
         };
         let mut tx = Transaction {
             client_id: 1,
@@ -62,6 +72,7 @@ mod tests {
             held: 0.0,
             available: 100.0,
             locked: false,
+            transactions: BTreeMap::new(),
         };
         let mut tx = Transaction {
             client_id: 1,
@@ -80,6 +91,7 @@ mod tests {
             held: 0.0,
             available: 100.0,
             locked: false,
+            transactions: BTreeMap::new(),
         };
         let mut tx = Transaction {
             client_id: 1,
