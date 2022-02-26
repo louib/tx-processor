@@ -1,8 +1,10 @@
 use serde::{Deserialize, Deserializer};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug)]
+#[derive(Deserialize)]
 struct Transaction {
-    r#type: String,
+    #[serde(deserialize_with = "crate::transaction::TransactionType::deserialize")]
+    r#type: TransactionType,
     // TODO rename client
     client_id: u16,
     // TODO rename tx
@@ -10,6 +12,7 @@ struct Transaction {
     amount: f32,
 }
 
+#[derive(Debug)]
 enum TransactionType {
     Deposit,
     Withdrawal,
@@ -37,15 +40,24 @@ impl TransactionType {
         Err(format!("Invalid transaction type {}.", transaction_type))
     }
 
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<TransactionType>, D::Error>
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<TransactionType, D::Error>
     where
         D: Deserializer<'de>,
     {
         let buf = String::deserialize(deserializer)?;
 
         match TransactionType::from_string(&buf) {
-            Ok(b) => Ok(Some(b)),
+            Ok(b) => Ok(b),
             Err(e) => Err(e).map_err(serde::de::Error::custom),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    pub fn test_parse_deposit_transaction() {
     }
 }
