@@ -33,6 +33,7 @@ impl Account {
                 self.transactions.insert(tx.transaction_id, tx);
             }
             TransactionType::Withdrawal => {
+                // TODO verify that this transaction was never processed?
                 if self.available < tx.amount as f64 {
                     return Err("Could not process transaction: Insufficient amount.".to_string());
                 }
