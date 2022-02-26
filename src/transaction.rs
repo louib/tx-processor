@@ -14,6 +14,11 @@ pub struct Transaction {
 
     amount: f32,
 }
+impl Transaction {
+    pub fn get_type(&self) -> &TransactionType {
+        &self.r#type
+    }
+}
 
 #[derive(Debug)]
 pub enum TransactionType {
@@ -62,16 +67,27 @@ mod tests {
 
     #[test]
     pub fn test_parse_deposit_transaction() {
+        let serialized_tx: &str = "deposit,1,1,1.0";
+        let tx: Transaction = deserialize_single_transaction(serialized_tx).unwrap();
+    }
+
+    #[test]
+    pub fn test_parse_with_spaces() {
         let serialized_tx: &str = "deposit, 1, 1, 1.0";
         let tx: Transaction = deserialize_single_transaction(serialized_tx).unwrap();
     }
 
     pub fn deserialize_single_transaction(serialized_tx: &str) -> Result<Transaction, String> {
-        let header: &str = "type, client, tx, amount";
+        let header: &str = "type,client,tx,amount";
         let csv_file: String = format!("{}\n{}", header, serialized_tx);
+        println!("{}", csv_file);
 
-        let mut reader = csv::Reader::from_reader(csv_file.as_bytes());
+        let mut reader = csv::ReaderBuilder::new()
+            .has_headers(true)
+            .trim(csv::Trim::All)
+            .from_reader(csv_file.as_bytes());
         for result in reader.deserialize() {
+            println!("{:?}", result);
             let record: Transaction = result.expect("Could not deserialize transaction record");
             return Ok(record);
         }
