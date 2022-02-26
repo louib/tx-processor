@@ -21,6 +21,7 @@ impl Transaction {
 }
 
 #[derive(Debug)]
+#[derive(PartialEq)]
 pub enum TransactionType {
     Deposit,
     Withdrawal,
@@ -69,6 +70,14 @@ mod tests {
     pub fn test_parse_deposit_transaction() {
         let serialized_tx: &str = "deposit,1,1,1.0";
         let tx: Transaction = deserialize_single_transaction(serialized_tx).unwrap();
+        assert_eq!(*tx.get_type(), TransactionType::Deposit);
+    }
+
+    #[test]
+    #[should_panic]
+    pub fn test_parse_invalid_transaction_type() {
+        let serialized_tx: &str = "invalid,1,1,1.0";
+        deserialize_single_transaction(serialized_tx);
     }
 
     #[test]
