@@ -13,7 +13,7 @@ pub struct Account {
 
     // A cache of the transactions that were processed
     // for this account.
-    pub transactions: BTreeMap<String, Transaction>,
+    pub transactions: BTreeMap<u32, Transaction>,
 }
 impl Account {
     pub fn process_transaction(&mut self, tx: Transaction) -> Result<(), String> {
@@ -21,16 +21,23 @@ impl Account {
             TransactionType::Deposit => {
                 // TODO verify that this transaction was never processed?
                 self.available += tx.amount as f64;
+                self.transactions.insert(tx.transaction_id, tx);
             }
             TransactionType::Withdrawal => {
                 if self.available < tx.amount as f64 {
                     return Err("Could not process transaction: Insufficient amount.".to_string());
                 }
                 self.available -= tx.amount as f64;
+                self.transactions.insert(tx.transaction_id, tx);
             }
             TransactionType::Dispute => {
-
-
+                let disputed_tx = match self.transactions.get(&tx.transaction_id) {
+                    Some(tx) => tx,
+                    None => return Ok(()),
+                };
+                self.available -= disputed_tx.amount as f64;
+                self.held += disputed_tx.amount as f64;
+                self.transactions.insert(tx.transaction_id, tx);
             }
             TransactionType::Resolve => {}
             TransactionType::Chargeback => {}
