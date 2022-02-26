@@ -60,16 +60,36 @@ mod tests {
         let mut account = Account {
             client_id: 1,
             held: 0.0,
-            available: 0.0,
+            available: 100.0,
             locked: false,
         };
         let mut tx = Transaction {
             client_id: 1,
             transaction_id: 1,
-            r#type: TransactionType::Deposit,
-            amount: 100.0,
+            r#type: TransactionType::Withdrawal,
+            amount: 50.0,
         };
         account.process_transaction(tx).unwrap();
+        assert_eq!(account.available, 50.0);
+    }
+
+    #[test]
+    pub fn test_withdraw_insufficient_funds() {
+        let mut account = Account {
+            client_id: 1,
+            held: 0.0,
+            available: 100.0,
+            locked: false,
+        };
+        let mut tx = Transaction {
+            client_id: 1,
+            transaction_id: 1,
+            r#type: TransactionType::Withdrawal,
+            amount: 150.0,
+        };
+        if let Ok(()) = account.process_transaction(tx) {
+            panic!("Should not allow to withdraw more funds than available.");
+        }
         assert_eq!(account.available, 100.0);
     }
 }
