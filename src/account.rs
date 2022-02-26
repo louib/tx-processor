@@ -12,7 +12,7 @@ pub struct Account {
     locked: bool,
 }
 impl Account {
-    pub fn process_transaction(&mut self, tx: Transaction) {
+    pub fn process_transaction(&mut self, tx: Transaction) -> Result<(), String> {
         match tx.get_type() {
             TransactionType::Deposit => {
                 // TODO verify that this transaction was never processed?
@@ -23,6 +23,7 @@ impl Account {
             TransactionType::Resolve => {}
             TransactionType::Chargeback => {}
         };
+        Ok(())
     }
 }
 
@@ -45,7 +46,7 @@ mod tests {
             r#type: TransactionType::Deposit,
             amount: 100.0,
         };
-        account.process_transaction(tx);
+        account.process_transaction(tx).unwrap();
         assert_eq!(account.available, 100.0);
     }
 }
