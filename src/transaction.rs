@@ -5,10 +5,13 @@ use serde::{Deserialize, Deserializer};
 struct Transaction {
     #[serde(deserialize_with = "crate::transaction::TransactionType::deserialize")]
     r#type: TransactionType,
-    // TODO rename client
+
+    #[serde(rename = "client")]
     client_id: u16,
-    // TODO rename tx
+
+    #[serde(rename = "tx")]
     transaction_id: u32,
+
     amount: f32,
 }
 
