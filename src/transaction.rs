@@ -1,8 +1,8 @@
 use serde::{Deserialize, Deserializer};
 
-#[derive(Debug)]
 #[derive(Deserialize)]
-struct Transaction {
+#[derive(Debug)]
+pub struct Transaction {
     #[serde(deserialize_with = "crate::transaction::TransactionType::deserialize")]
     r#type: TransactionType,
 
@@ -16,7 +16,7 @@ struct Transaction {
 }
 
 #[derive(Debug)]
-enum TransactionType {
+pub enum TransactionType {
     Deposit,
     Withdrawal,
     Dispute,
@@ -62,5 +62,19 @@ mod tests {
 
     #[test]
     pub fn test_parse_deposit_transaction() {
+        let serialized_tx: &str = "deposit, 1, 1, 1.0";
+        let tx: Transaction = deserialize_single_transaction(serialized_tx).unwrap();
+    }
+
+    pub fn deserialize_single_transaction(serialized_tx: &str) -> Result<Transaction, String> {
+        let header: &str = "type, client, tx, amount";
+        let csv_file: String = format!("{}\n{}", header, serialized_tx);
+
+        let mut reader = csv::Reader::from_reader(csv_file.as_bytes());
+        for result in reader.deserialize() {
+            let record: Transaction = result.expect("Could not deserialize transaction record");
+            return Ok(record);
+        }
+        return Err("Did not deserialize any record".to_string());
     }
 }
