@@ -21,6 +21,11 @@ pub struct Account {
 }
 impl Account {
     pub fn process_transaction(&mut self, tx: Transaction) -> Result<(), String> {
+        // Currently there is no way to process any transaction once the
+        // account was locked.
+        if self.locked {
+            return Err("Could not process transaction: The account is locked.".to_string());
+        }
         match tx.get_type() {
             TransactionType::Deposit => {
                 // TODO verify that this transaction was never processed?
@@ -65,7 +70,20 @@ impl Account {
                 self.held -= disputed_tx.amount as f64;
                 self.disputed_transactions.remove(&tx.transaction_id);
             }
-            TransactionType::Chargeback => {}
+            TransactionType::Chargeback => {
+                let disputed_tx = match self.transactions.get(&tx.transaction_id) {
+                    Some(tx) => tx,
+                    None => return Ok(()),
+                };
+
+                if !self.disputed_transactions.contains(&tx.transaction_id) {
+                    return Ok(());
+                }
+
+                self.held -= disputed_tx.amount as f64;
+                self.disputed_transactions.remove(&tx.transaction_id);
+                self.locked = true;
+            }
         };
         Ok(())
     }
