@@ -89,6 +89,14 @@ mod tests {
         let tx: Transaction = deserialize_single_transaction(serialized_tx).unwrap();
     }
 
+    #[test]
+    pub fn test_parse_decimals() {
+        let serialized_tx: &str = "withdrawal, 1, 1, 3.5545";
+        let tx: Transaction = deserialize_single_transaction(serialized_tx).unwrap();
+        assert_eq!(*tx.get_type(), TransactionType::Withdrawal);
+        assert_eq!(tx.amount, 3.5545);
+    }
+
     pub fn deserialize_single_transaction(serialized_tx: &str) -> Result<Transaction, String> {
         let header: &str = "type,client,tx,amount";
         let csv_file: String = format!("{}\n{}", header, serialized_tx);
