@@ -71,6 +71,9 @@ mod tests {
         let serialized_tx: &str = "deposit,1,1,1.0";
         let tx: Transaction = deserialize_single_transaction(serialized_tx).unwrap();
         assert_eq!(*tx.get_type(), TransactionType::Deposit);
+        assert_eq!(tx.client_id, 1);
+        assert_eq!(tx.transaction_id, 1);
+        assert_eq!(tx.amount, 1.0);
     }
 
     #[test]
