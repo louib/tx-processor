@@ -274,4 +274,65 @@ mod tests {
         assert_eq!(account.available, 100.0);
         assert_eq!(account.held, 0.0);
     }
+
+    #[test]
+    pub fn test_chargeback() {
+        let mut account = Account {
+            client_id: 1,
+            held: 0.0,
+            available: 0.0,
+            locked: false,
+            transactions: BTreeMap::new(),
+            disputed_transactions: HashSet::new(),
+        };
+        let mut tx = Transaction {
+            client_id: 1,
+            transaction_id: 1,
+            r#type: TransactionType::Deposit,
+            amount: 150.0,
+        };
+        let mut dispute_tx = Transaction {
+            client_id: 1,
+            transaction_id: 1,
+            r#type: TransactionType::Dispute,
+            // FIXME I think the amount should be optional?
+            amount: 150.0,
+        };
+        let mut chargeback_tx = Transaction {
+            client_id: 1,
+            transaction_id: 1,
+            r#type: TransactionType::Chargeback,
+            // FIXME I think the amount should be optional?
+            amount: 150.0,
+        };
+        account.process_transaction(tx).unwrap();
+        account.process_transaction(dispute_tx).unwrap();
+        account.process_transaction(chargeback_tx).unwrap();
+        assert_eq!(account.available, 0.0);
+        assert_eq!(account.held, 0.0);
+        assert_eq!(account.locked, true);
+    }
+
+    #[test]
+    pub fn test_chargeback_invalid_transaction() {
+        let mut account = Account {
+            client_id: 1,
+            held: 0.0,
+            available: 100.0,
+            locked: false,
+            transactions: BTreeMap::new(),
+            disputed_transactions: HashSet::new(),
+        };
+        let mut chargeback_tx = Transaction {
+            client_id: 1,
+            transaction_id: 1,
+            r#type: TransactionType::Chargeback,
+            // FIXME I think the amount should be optional?
+            amount: 150.0,
+        };
+        account.process_transaction(chargeback_tx).unwrap();
+        assert_eq!(account.available, 100.0);
+        assert_eq!(account.held, 0.0);
+        assert_eq!(account.locked, false);
+    }
 }
