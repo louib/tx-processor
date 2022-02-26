@@ -18,6 +18,9 @@ impl Transaction {
     pub fn get_type(&self) -> &TransactionType {
         &self.r#type
     }
+    pub fn is_disputable(&self) -> bool {
+        return [TransactionType::Deposit, TransactionType::Withdrawal].contains(self.get_type());
+    }
 }
 
 #[derive(Debug)]

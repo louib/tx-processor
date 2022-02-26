@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::collections::HashSet;
 
 use crate::transaction::{Transaction, TransactionType};
 
@@ -14,6 +15,9 @@ pub struct Account {
     // A cache of the transactions that were processed
     // for this account.
     pub transactions: BTreeMap<u32, Transaction>,
+
+    // A cache of the IDs of the disputed transactions.
+    pub disputed_transactions: HashSet<u32>,
 }
 impl Account {
     pub fn process_transaction(&mut self, tx: Transaction) -> Result<(), String> {
@@ -35,11 +39,32 @@ impl Account {
                     Some(tx) => tx,
                     None => return Ok(()),
                 };
+
+                if !disputed_tx.is_disputable() {
+                    return Err(format!(
+                        "Transaction {} is not disputable.",
+                        disputed_tx.transaction_id
+                    ));
+                }
+
                 self.available -= disputed_tx.amount as f64;
                 self.held += disputed_tx.amount as f64;
-                self.transactions.insert(tx.transaction_id, tx);
+                self.disputed_transactions.insert(tx.transaction_id.clone());
             }
-            TransactionType::Resolve => {}
+            TransactionType::Resolve => {
+                let disputed_tx = match self.transactions.get(&tx.transaction_id) {
+                    Some(tx) => tx,
+                    None => return Ok(()),
+                };
+
+                if !self.disputed_transactions.contains(&tx.transaction_id) {
+                    return Ok(());
+                }
+
+                self.available += disputed_tx.amount as f64;
+                self.held -= disputed_tx.amount as f64;
+                self.disputed_transactions.remove(&tx.transaction_id);
+            }
             TransactionType::Chargeback => {}
         };
         Ok(())
@@ -61,6 +86,7 @@ mod tests {
             available: 0.0,
             locked: false,
             transactions: BTreeMap::new(),
+            disputed_transactions: HashSet::new(),
         };
         let mut tx = Transaction {
             client_id: 1,
@@ -80,6 +106,7 @@ mod tests {
             available: 100.0,
             locked: false,
             transactions: BTreeMap::new(),
+            disputed_transactions: HashSet::new(),
         };
         let mut tx = Transaction {
             client_id: 1,
@@ -99,6 +126,7 @@ mod tests {
             available: 100.0,
             locked: false,
             transactions: BTreeMap::new(),
+            disputed_transactions: HashSet::new(),
         };
         let mut tx = Transaction {
             client_id: 1,
@@ -120,6 +148,7 @@ mod tests {
             available: 0.0,
             locked: false,
             transactions: BTreeMap::new(),
+            disputed_transactions: HashSet::new(),
         };
         let mut tx = Transaction {
             client_id: 1,
@@ -148,6 +177,7 @@ mod tests {
             available: 0.0,
             locked: false,
             transactions: BTreeMap::new(),
+            disputed_transactions: HashSet::new(),
         };
         let mut tx = Transaction {
             client_id: 1,
