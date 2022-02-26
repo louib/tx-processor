@@ -14,7 +14,10 @@ pub struct Account {
 impl Account {
     pub fn process_transaction(&mut self, tx: Transaction) {
         match tx.get_type() {
-            TransactionType::Deposit => {}
+            TransactionType::Deposit => {
+                // TODO verify that this transaction was never processed?
+                self.available += tx.amount as f64;
+            }
             TransactionType::Withdrawal => {}
             TransactionType::Dispute => {}
             TransactionType::Resolve => {}
@@ -28,5 +31,21 @@ mod tests {
     use super::*;
 
     #[test]
-    pub fn test_deposit_into_account() {}
+    pub fn test_deposit_into_account() {
+        let mut account = Account {
+            client_id: 1,
+            held: 0.0,
+            available: 0.0,
+            total: 0.0,
+            locked: false,
+        };
+        let mut tx = Transaction {
+            client_id: 1,
+            transaction_id: 1,
+            r#type: TransactionType::Deposit,
+            amount: 100.0,
+        };
+        account.process_transaction(tx);
+        assert_eq!(account.available, 100.0);
+    }
 }

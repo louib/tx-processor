@@ -4,15 +4,15 @@ use serde::{Deserialize, Deserializer};
 #[derive(Debug)]
 pub struct Transaction {
     #[serde(deserialize_with = "crate::transaction::TransactionType::deserialize")]
-    r#type: TransactionType,
+    pub r#type: TransactionType,
 
     #[serde(rename = "client")]
-    client_id: u16,
+    pub client_id: u16,
 
     #[serde(rename = "tx")]
-    transaction_id: u32,
+    pub transaction_id: u32,
 
-    amount: f32,
+    pub amount: f32,
 }
 impl Transaction {
     pub fn get_type(&self) -> &TransactionType {
