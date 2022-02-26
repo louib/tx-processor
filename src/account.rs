@@ -1,3 +1,5 @@
+use crate::transaction::{Transaction, TransactionType};
+
 pub struct Account {
     client_id: u16,
 
@@ -8,4 +10,15 @@ pub struct Account {
     total: f64,
 
     locked: bool,
+}
+impl Account {
+    pub fn process_transaction(&mut self, tx: Transaction) {
+        match tx.get_type() {
+            TransactionType::Deposit => {}
+            TransactionType::Withdrawal => {}
+            TransactionType::Dispute => {}
+            TransactionType::Resolve => {}
+            TransactionType::Chargeback => {}
+        };
+    }
 }
