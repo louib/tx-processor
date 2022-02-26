@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Deserializer};
 
 #[derive(Debug, Deserialize)]
 struct Transaction {
@@ -18,15 +18,6 @@ enum TransactionType {
     Chargeback,
 }
 impl TransactionType {
-    pub fn to_string(&self) -> String {
-        match &self {
-            TransactionType::Deposit => "deposit".to_string(),
-            TransactionType::Withdrawal => "withdrawal".to_string(),
-            TransactionType::Dispute => "dispute".to_string(),
-            TransactionType::Resolve => "resolve".to_string(),
-            TransactionType::Chargeback => "chargeback".to_string(),
-        }
-    }
     pub fn from_string(transaction_type: &str) -> Result<TransactionType, String> {
         if transaction_type == "deposit" {
             return Ok(TransactionType::Deposit);
@@ -44,6 +35,18 @@ impl TransactionType {
             return Ok(TransactionType::Chargeback);
         }
         Err(format!("Invalid transaction type {}.", transaction_type))
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<TransactionType>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let buf = String::deserialize(deserializer)?;
+
+        match TransactionType::from_string(&buf) {
+            Ok(b) => Ok(Some(b)),
+            Err(e) => Err(e).map_err(serde::de::Error::custom),
+        }
     }
 }
 
