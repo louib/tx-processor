@@ -122,14 +122,7 @@ mod tests {
 
     #[test]
     pub fn test_deposit() {
-        let mut account = Account {
-            client_id: 1,
-            held: 0.0,
-            available: 0.0,
-            locked: false,
-            transactions: BTreeMap::new(),
-            disputed_transactions: HashSet::new(),
-        };
+        let mut account = Account::new(1);
         let mut tx = Transaction {
             client_id: 1,
             transaction_id: 1,
@@ -142,14 +135,9 @@ mod tests {
 
     #[test]
     pub fn test_withdraw() {
-        let mut account = Account {
-            client_id: 1,
-            held: 0.0,
-            available: 100.0,
-            locked: false,
-            transactions: BTreeMap::new(),
-            disputed_transactions: HashSet::new(),
-        };
+        let mut account = Account::new(1);
+        account.available = 100.0;
+
         let mut tx = Transaction {
             client_id: 1,
             transaction_id: 1,
@@ -162,14 +150,9 @@ mod tests {
 
     #[test]
     pub fn test_withdraw_insufficient_funds() {
-        let mut account = Account {
-            client_id: 1,
-            held: 0.0,
-            available: 100.0,
-            locked: false,
-            transactions: BTreeMap::new(),
-            disputed_transactions: HashSet::new(),
-        };
+        let mut account = Account::new(1);
+        account.available = 100.0;
+
         let mut tx = Transaction {
             client_id: 1,
             transaction_id: 1,
@@ -182,14 +165,8 @@ mod tests {
 
     #[test]
     pub fn test_dispute() {
-        let mut account = Account {
-            client_id: 1,
-            held: 0.0,
-            available: 0.0,
-            locked: false,
-            transactions: BTreeMap::new(),
-            disputed_transactions: HashSet::new(),
-        };
+        let mut account = Account::new(1);
+
         let mut tx = Transaction {
             client_id: 1,
             transaction_id: 1,
@@ -211,14 +188,8 @@ mod tests {
 
     #[test]
     pub fn test_dispute_invalid_transaction() {
-        let mut account = Account {
-            client_id: 1,
-            held: 0.0,
-            available: 0.0,
-            locked: false,
-            transactions: BTreeMap::new(),
-            disputed_transactions: HashSet::new(),
-        };
+        let mut account = Account::new(1);
+
         let mut tx = Transaction {
             client_id: 1,
             transaction_id: 1,
@@ -240,14 +211,8 @@ mod tests {
 
     #[test]
     pub fn test_resolve() {
-        let mut account = Account {
-            client_id: 1,
-            held: 0.0,
-            available: 0.0,
-            locked: false,
-            transactions: BTreeMap::new(),
-            disputed_transactions: HashSet::new(),
-        };
+        let mut account = Account::new(1);
+
         let mut tx = Transaction {
             client_id: 1,
             transaction_id: 1,
@@ -277,14 +242,9 @@ mod tests {
 
     #[test]
     pub fn test_resolve_invalid_transaction() {
-        let mut account = Account {
-            client_id: 1,
-            held: 0.0,
-            available: 100.0,
-            locked: false,
-            transactions: BTreeMap::new(),
-            disputed_transactions: HashSet::new(),
-        };
+        let mut account = Account::new(1);
+        account.available = 100.0;
+
         let mut resolve_tx = Transaction {
             client_id: 1,
             transaction_id: 7,
@@ -299,14 +259,8 @@ mod tests {
 
     #[test]
     pub fn test_chargeback() {
-        let mut account = Account {
-            client_id: 1,
-            held: 0.0,
-            available: 0.0,
-            locked: false,
-            transactions: BTreeMap::new(),
-            disputed_transactions: HashSet::new(),
-        };
+        let mut account = Account::new(1);
+
         let mut tx = Transaction {
             client_id: 1,
             transaction_id: 1,
@@ -337,14 +291,9 @@ mod tests {
 
     #[test]
     pub fn test_chargeback_invalid_transaction() {
-        let mut account = Account {
-            client_id: 1,
-            held: 0.0,
-            available: 100.0,
-            locked: false,
-            transactions: BTreeMap::new(),
-            disputed_transactions: HashSet::new(),
-        };
+        let mut account = Account::new(1);
+        account.available = 100.0;
+
         let mut chargeback_tx = Transaction {
             client_id: 1,
             transaction_id: 1,
