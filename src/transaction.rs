@@ -13,7 +13,13 @@ pub struct Transaction {
     #[serde(rename = "tx")]
     pub transaction_id: u32,
 
-    pub amount: Option<f32>,
+    // There is surely a way to deserialize this field without implementing
+    // the deserializing function.
+    // See https://crates.io/crates/rust-decimal#user-content-serde-with-arbitrary-precision
+    #[serde(deserialize_with = "crate::transaction::Transaction::deserialize_amount")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    pub amount: Option<Decimal>,
 }
 impl Transaction {
     pub fn get_type(&self) -> &TransactionType {
@@ -93,7 +99,7 @@ mod tests {
         assert_eq!(*tx.get_type(), TransactionType::Deposit);
         assert_eq!(tx.client_id, 1);
         assert_eq!(tx.transaction_id, 1);
-        assert_eq!(tx.amount, Some(1.0));
+        assert_eq!(tx.amount, Some(Decimal::from_str("1.0").unwrap()));
     }
 
     #[test]
@@ -123,7 +129,7 @@ mod tests {
         let serialized_tx: &str = "withdrawal, 1, 1, 3.5545";
         let tx: Transaction = deserialize_single_transaction(serialized_tx).unwrap();
         assert_eq!(*tx.get_type(), TransactionType::Withdrawal);
-        assert_eq!(tx.amount, Some(3.5545));
+        assert_eq!(tx.amount, Some(Decimal::from_str("3.5545").unwrap()));
     }
 
     pub fn deserialize_single_transaction(serialized_tx: &str) -> Result<Transaction, String> {

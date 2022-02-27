@@ -1,3 +1,4 @@
+use rust_decimal::prelude::*;
 use std::collections::BTreeMap;
 use std::collections::HashSet;
 
@@ -6,9 +7,9 @@ use crate::transaction::{Transaction, TransactionType};
 pub struct Account {
     client_id: u16,
 
-    available: f64,
+    available: Decimal,
 
-    held: f64,
+    held: Decimal,
 
     locked: bool,
 
@@ -23,8 +24,8 @@ impl Account {
     pub fn new(client_id: u16) -> Account {
         Account {
             client_id,
-            held: 0.0,
-            available: 0.0,
+            held: Decimal::from_str("0.0").unwrap(),
+            available: Decimal::from_str("0.0").unwrap(),
             locked: false,
             transactions: BTreeMap::new(),
             disputed_transactions: HashSet::new(),
@@ -41,17 +42,17 @@ impl Account {
         match tx.get_type() {
             TransactionType::Deposit => {
                 // TODO verify that this transaction was never processed?
-                self.available += tx.amount.unwrap() as f64;
+                self.available += tx.amount.unwrap();
                 self.transactions.insert(tx.transaction_id, tx);
             }
             TransactionType::Withdrawal => {
                 // TODO verify that this transaction was never processed?
-                if self.available < tx.amount.unwrap() as f64 {
+                if self.available < tx.amount.unwrap() {
                     eprintln!("Could not process transaction: Insufficient amount.");
                     return;
                 }
 
-                self.available -= tx.amount.unwrap() as f64;
+                self.available -= tx.amount.unwrap();
                 self.transactions.insert(tx.transaction_id, tx);
             }
             TransactionType::Dispute => {
@@ -65,8 +66,8 @@ impl Account {
                     return;
                 }
 
-                self.available -= disputed_tx.amount.unwrap() as f64;
-                self.held += disputed_tx.amount.unwrap() as f64;
+                self.available -= disputed_tx.amount.unwrap();
+                self.held += disputed_tx.amount.unwrap();
                 self.disputed_transactions.insert(tx.transaction_id.clone());
             }
             TransactionType::Resolve => {
@@ -79,8 +80,8 @@ impl Account {
                     return;
                 }
 
-                self.available += disputed_tx.amount.unwrap() as f64;
-                self.held -= disputed_tx.amount.unwrap() as f64;
+                self.available += disputed_tx.amount.unwrap();
+                self.held -= disputed_tx.amount.unwrap();
                 self.disputed_transactions.remove(&tx.transaction_id);
             }
             TransactionType::Chargeback => {
@@ -93,14 +94,14 @@ impl Account {
                     return;
                 }
 
-                self.held -= disputed_tx.amount.unwrap() as f64;
+                self.held -= disputed_tx.amount.unwrap();
                 self.disputed_transactions.remove(&tx.transaction_id);
                 self.locked = true;
             }
         };
     }
 
-    pub fn get_total(&self) -> f64 {
+    pub fn get_total(&self) -> Decimal {
         self.available + self.held
     }
 
@@ -127,40 +128,40 @@ mod tests {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Deposit,
-            amount: Some(100.0),
+            amount: Some(Decimal::from_str("100.0").unwrap()),
         };
         account.process_transaction(tx);
-        assert_eq!(account.available, 100.0);
+        assert_eq!(account.available, Decimal::from_str("100.0").unwrap());
     }
 
     #[test]
     pub fn test_withdraw() {
         let mut account = Account::new(1);
-        account.available = 100.0;
+        account.available = Decimal::from_str("100.0").unwrap();
 
         let mut tx = Transaction {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Withdrawal,
-            amount: Some(50.0),
+            amount: Some(Decimal::from_str("50.0").unwrap()),
         };
         account.process_transaction(tx);
-        assert_eq!(account.available, 50.0);
+        assert_eq!(account.available, Decimal::from_str("50.0").unwrap());
     }
 
     #[test]
     pub fn test_withdraw_insufficient_funds() {
         let mut account = Account::new(1);
-        account.available = 100.0;
+        account.available = Decimal::from_str("100.0").unwrap();
 
         let mut tx = Transaction {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Withdrawal,
-            amount: Some(150.0),
+            amount: Some(Decimal::from_str("150.0").unwrap()),
         };
         account.process_transaction(tx);
-        assert_eq!(account.available, 100.0);
+        assert_eq!(account.available, Decimal::from_str("100.0").unwrap());
     }
 
     #[test]
@@ -171,7 +172,7 @@ mod tests {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Deposit,
-            amount: Some(150.0),
+            amount: Some(Decimal::from_str("150.0").unwrap()),
         };
         let mut dispute_tx = Transaction {
             client_id: 1,
@@ -181,8 +182,8 @@ mod tests {
         };
         account.process_transaction(tx);
         account.process_transaction(dispute_tx);
-        assert_eq!(account.available, 0.0);
-        assert_eq!(account.held, 150.0);
+        assert_eq!(account.available, Decimal::from_str("0.0").unwrap());
+        assert_eq!(account.held, Decimal::from_str("150.0").unwrap());
     }
 
     #[test]
@@ -193,7 +194,7 @@ mod tests {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Deposit,
-            amount: Some(150.0),
+            amount: Some(Decimal::from_str("150.0").unwrap()),
         };
         let mut dispute_tx = Transaction {
             client_id: 1,
@@ -203,8 +204,8 @@ mod tests {
         };
         account.process_transaction(tx);
         account.process_transaction(dispute_tx);
-        assert_eq!(account.available, 150.0);
-        assert_eq!(account.held, 0.0);
+        assert_eq!(account.available, Decimal::from_str("150.0").unwrap());
+        assert_eq!(account.held, Decimal::from_str("0.0").unwrap());
     }
 
     #[test]
@@ -215,13 +216,13 @@ mod tests {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Deposit,
-            amount: Some(150.0),
+            amount: Some(Decimal::from_str("150.0").unwrap()),
         };
         let mut dispute_tx = Transaction {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Dispute,
-            amount: Some(150.0),
+            amount: Some(Decimal::from_str("150.0").unwrap()),
         };
         let mut resolve_tx = Transaction {
             client_id: 1,
@@ -232,14 +233,14 @@ mod tests {
         account.process_transaction(tx);
         account.process_transaction(dispute_tx);
         account.process_transaction(resolve_tx);
-        assert_eq!(account.available, 150.0);
-        assert_eq!(account.held, 0.0);
+        assert_eq!(account.available, Decimal::from_str("150.0").unwrap());
+        assert_eq!(account.held, Decimal::from_str("0.0").unwrap());
     }
 
     #[test]
     pub fn test_resolve_invalid_transaction() {
         let mut account = Account::new(1);
-        account.available = 100.0;
+        account.available = Decimal::from_str("100.0").unwrap();
 
         let mut resolve_tx = Transaction {
             client_id: 1,
@@ -248,8 +249,8 @@ mod tests {
             amount: None,
         };
         account.process_transaction(resolve_tx);
-        assert_eq!(account.available, 100.0);
-        assert_eq!(account.held, 0.0);
+        assert_eq!(account.available, Decimal::from_str("100.0").unwrap());
+        assert_eq!(account.held, Decimal::from_str("0.0").unwrap());
     }
 
     #[test]
@@ -260,7 +261,7 @@ mod tests {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Deposit,
-            amount: Some(150.0),
+            amount: Some(Decimal::from_str("150.0").unwrap()),
         };
         let mut dispute_tx = Transaction {
             client_id: 1,
@@ -277,15 +278,15 @@ mod tests {
         account.process_transaction(tx);
         account.process_transaction(dispute_tx);
         account.process_transaction(chargeback_tx);
-        assert_eq!(account.available, 0.0);
-        assert_eq!(account.held, 0.0);
+        assert_eq!(account.available, Decimal::from_str("0.0").unwrap());
+        assert_eq!(account.held, Decimal::from_str("0.0").unwrap());
         assert_eq!(account.locked, true);
     }
 
     #[test]
     pub fn test_chargeback_invalid_transaction() {
         let mut account = Account::new(1);
-        account.available = 100.0;
+        account.available = Decimal::from_str("100.0").unwrap();
 
         let mut chargeback_tx = Transaction {
             client_id: 1,
@@ -294,8 +295,8 @@ mod tests {
             amount: None,
         };
         account.process_transaction(chargeback_tx);
-        assert_eq!(account.available, 100.0);
-        assert_eq!(account.held, 0.0);
+        assert_eq!(account.available, Decimal::from_str("100.0").unwrap());
+        assert_eq!(account.held, Decimal::from_str("0.0").unwrap());
         assert_eq!(account.locked, false);
     }
 
@@ -303,16 +304,16 @@ mod tests {
     pub fn test_precision() {
         let mut account = Account::new(1);
 
-        for i in 1..1_000_000 {
+        for i in 0..1_000_000 {
             let mut chargeback_tx = Transaction {
                 client_id: 1,
                 transaction_id: 1,
                 r#type: TransactionType::Deposit,
-                amount: Some(0.1),
+                amount: Some(Decimal::from_str("0.1").unwrap()),
             };
             account.process_transaction(chargeback_tx);
         }
 
-        assert_eq!(account.available, 100000.0);
+        assert_eq!(account.available, Decimal::from_str("100000.0").unwrap());
     }
 }
