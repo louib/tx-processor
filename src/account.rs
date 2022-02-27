@@ -41,17 +41,17 @@ impl Account {
         match tx.get_type() {
             TransactionType::Deposit => {
                 // TODO verify that this transaction was never processed?
-                self.available += tx.amount as f64;
+                self.available += tx.amount.unwrap() as f64;
                 self.transactions.insert(tx.transaction_id, tx);
             }
             TransactionType::Withdrawal => {
                 // TODO verify that this transaction was never processed?
-                if self.available < tx.amount as f64 {
+                if self.available < tx.amount.unwrap() as f64 {
                     eprintln!("Could not process transaction: Insufficient amount.");
                     return;
                 }
 
-                self.available -= tx.amount as f64;
+                self.available -= tx.amount.unwrap() as f64;
                 self.transactions.insert(tx.transaction_id, tx);
             }
             TransactionType::Dispute => {
@@ -65,8 +65,8 @@ impl Account {
                     return;
                 }
 
-                self.available -= disputed_tx.amount as f64;
-                self.held += disputed_tx.amount as f64;
+                self.available -= disputed_tx.amount.unwrap() as f64;
+                self.held += disputed_tx.amount.unwrap() as f64;
                 self.disputed_transactions.insert(tx.transaction_id.clone());
             }
             TransactionType::Resolve => {
@@ -79,8 +79,8 @@ impl Account {
                     return;
                 }
 
-                self.available += disputed_tx.amount as f64;
-                self.held -= disputed_tx.amount as f64;
+                self.available += disputed_tx.amount.unwrap() as f64;
+                self.held -= disputed_tx.amount.unwrap() as f64;
                 self.disputed_transactions.remove(&tx.transaction_id);
             }
             TransactionType::Chargeback => {
@@ -93,7 +93,7 @@ impl Account {
                     return;
                 }
 
-                self.held -= disputed_tx.amount as f64;
+                self.held -= disputed_tx.amount.unwrap() as f64;
                 self.disputed_transactions.remove(&tx.transaction_id);
                 self.locked = true;
             }
@@ -127,7 +127,7 @@ mod tests {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Deposit,
-            amount: 100.0,
+            amount: Some(100.0),
         };
         account.process_transaction(tx);
         assert_eq!(account.available, 100.0);
@@ -142,7 +142,7 @@ mod tests {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Withdrawal,
-            amount: 50.0,
+            amount: Some(50.0),
         };
         account.process_transaction(tx);
         assert_eq!(account.available, 50.0);
@@ -157,7 +157,7 @@ mod tests {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Withdrawal,
-            amount: 150.0,
+            amount: Some(150.0),
         };
         account.process_transaction(tx);
         assert_eq!(account.available, 100.0);
@@ -171,14 +171,13 @@ mod tests {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Deposit,
-            amount: 150.0,
+            amount: Some(150.0),
         };
         let mut dispute_tx = Transaction {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Dispute,
-            // FIXME I think the amount should be optional?
-            amount: 150.0,
+            amount: None,
         };
         account.process_transaction(tx);
         account.process_transaction(dispute_tx);
@@ -194,14 +193,13 @@ mod tests {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Deposit,
-            amount: 150.0,
+            amount: Some(150.0),
         };
         let mut dispute_tx = Transaction {
             client_id: 1,
             transaction_id: 2,
             r#type: TransactionType::Dispute,
-            // FIXME I think the amount should be optional?
-            amount: 150.0,
+            amount: None,
         };
         account.process_transaction(tx);
         account.process_transaction(dispute_tx);
@@ -217,21 +215,19 @@ mod tests {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Deposit,
-            amount: 150.0,
+            amount: Some(150.0),
         };
         let mut dispute_tx = Transaction {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Dispute,
-            // FIXME I think the amount should be optional?
-            amount: 150.0,
+            amount: Some(150.0),
         };
         let mut resolve_tx = Transaction {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Resolve,
-            // FIXME I think the amount should be optional?
-            amount: 150.0,
+            amount: None,
         };
         account.process_transaction(tx);
         account.process_transaction(dispute_tx);
@@ -249,8 +245,7 @@ mod tests {
             client_id: 1,
             transaction_id: 7,
             r#type: TransactionType::Resolve,
-            // FIXME I think the amount should be optional?
-            amount: 150.0,
+            amount: None,
         };
         account.process_transaction(resolve_tx);
         assert_eq!(account.available, 100.0);
@@ -265,21 +260,19 @@ mod tests {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Deposit,
-            amount: 150.0,
+            amount: Some(150.0),
         };
         let mut dispute_tx = Transaction {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Dispute,
-            // FIXME I think the amount should be optional?
-            amount: 150.0,
+            amount: None,
         };
         let mut chargeback_tx = Transaction {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Chargeback,
-            // FIXME I think the amount should be optional?
-            amount: 150.0,
+            amount: None,
         };
         account.process_transaction(tx);
         account.process_transaction(dispute_tx);
@@ -298,28 +291,11 @@ mod tests {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Chargeback,
-            // FIXME I think the amount should be optional?
-            amount: 150.0,
+            amount: None,
         };
         account.process_transaction(chargeback_tx);
         assert_eq!(account.available, 100.0);
         assert_eq!(account.held, 0.0);
         assert_eq!(account.locked, false);
-    }
-
-    #[test]
-    pub fn test_precision() {
-        let mut account = Account::new(1);
-        account.available = 0.1;
-
-        let mut tx = Transaction {
-            client_id: 1,
-            transaction_id: 1,
-            r#type: TransactionType::Deposit,
-            amount: 0.2,
-        };
-
-        account.process_transaction(tx);
-        assert_eq!(account.available, 0.3);
     }
 }

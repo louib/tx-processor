@@ -12,7 +12,7 @@ pub struct Transaction {
     #[serde(rename = "tx")]
     pub transaction_id: u32,
 
-    pub amount: f32,
+    pub amount: Option<f32>,
 }
 impl Transaction {
     pub fn get_type(&self) -> &TransactionType {
@@ -80,7 +80,7 @@ mod tests {
         assert_eq!(*tx.get_type(), TransactionType::Deposit);
         assert_eq!(tx.client_id, 1);
         assert_eq!(tx.transaction_id, 1);
-        assert_eq!(tx.amount, 1.0);
+        assert_eq!(tx.amount, Some(1.0));
     }
 
     #[test]
@@ -97,11 +97,20 @@ mod tests {
     }
 
     #[test]
+    pub fn test_parse_no_amount() {
+        let serialized_tx: &str = "chargeback, 1, 1,";
+        let tx: Transaction = deserialize_single_transaction(serialized_tx).unwrap();
+        assert_eq!(*tx.get_type(), TransactionType::Chargeback);
+        assert_eq!(tx.amount, None);
+        assert_eq!(tx.client_id, 1);
+    }
+
+    #[test]
     pub fn test_parse_decimals() {
         let serialized_tx: &str = "withdrawal, 1, 1, 3.5545";
         let tx: Transaction = deserialize_single_transaction(serialized_tx).unwrap();
         assert_eq!(*tx.get_type(), TransactionType::Withdrawal);
-        assert_eq!(tx.amount, 3.5545);
+        assert_eq!(tx.amount, Some(3.5545));
     }
 
     pub fn deserialize_single_transaction(serialized_tx: &str) -> Result<Transaction, String> {
