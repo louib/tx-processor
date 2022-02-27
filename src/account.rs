@@ -298,4 +298,21 @@ mod tests {
         assert_eq!(account.held, 0.0);
         assert_eq!(account.locked, false);
     }
+
+    #[test]
+    pub fn test_precision() {
+        let mut account = Account::new(1);
+
+        for i in 1..1_000_000 {
+            let mut chargeback_tx = Transaction {
+                client_id: 1,
+                transaction_id: 1,
+                r#type: TransactionType::Deposit,
+                amount: Some(0.1),
+            };
+            account.process_transaction(chargeback_tx);
+        }
+
+        assert_eq!(account.available, 100000.0);
+    }
 }

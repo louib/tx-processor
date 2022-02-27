@@ -1,3 +1,4 @@
+use rust_decimal::prelude::*;
 use serde::{Deserialize, Deserializer};
 
 #[derive(Deserialize)]
@@ -20,6 +21,18 @@ impl Transaction {
     }
     pub fn is_disputable(&self) -> bool {
         return [TransactionType::Deposit, TransactionType::Withdrawal].contains(self.get_type());
+    }
+
+    pub fn deserialize_amount<'de, D>(deserializer: D) -> Result<Option<Decimal>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let buf = String::deserialize(deserializer)?;
+
+        match Decimal::from_str(&buf) {
+            Ok(b) => Ok(Some(b)),
+            Err(e) => Err(e).map_err(serde::de::Error::custom),
+        }
     }
 }
 
