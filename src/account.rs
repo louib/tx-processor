@@ -109,9 +109,13 @@ impl Account {
         println!(
             "{}, {}, {}, {}, {}",
             self.client_id,
-            self.available.normalize(),
-            self.held.normalize(),
-            self.get_total().normalize(),
+            self.available
+                .round_dp(crate::consts::DECIMAL_PRECISION)
+                .normalize(),
+            self.held.round_dp(crate::consts::DECIMAL_PRECISION).normalize(),
+            self.get_total()
+                .round_dp(crate::consts::DECIMAL_PRECISION)
+                .normalize(),
             self.locked
         );
     }

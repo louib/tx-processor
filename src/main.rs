@@ -2,6 +2,7 @@ use std::env;
 
 mod account;
 mod bank;
+mod consts;
 mod transaction;
 
 fn main() {
