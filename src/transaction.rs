@@ -114,10 +114,9 @@ mod tests {
             .trim(csv::Trim::All)
             .from_reader(csv_file.as_bytes());
         for result in reader.deserialize() {
-            println!("{:?}", result);
-            let record: Transaction = result.expect("Could not deserialize transaction record");
-            return Ok(record);
+            let tx: Transaction = result.expect("Could not deserialize transaction.");
+            return Ok(tx);
         }
-        return Err("Did not deserialize any record".to_string());
+        return Err("Did not deserialize any transaction".to_string());
     }
 }
