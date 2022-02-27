@@ -31,6 +31,7 @@ impl Account {
             disputed_transactions: HashSet::new(),
         }
     }
+
     pub fn process_transaction(&mut self, tx: Transaction) {
         // Currently there is no way to process a transaction once the
         // account was locked.
@@ -222,6 +223,21 @@ mod tests {
     }
 
     #[test]
+    pub fn test_empty_account() {
+        let mut account = Account::new(1);
+        account.available = Decimal::from_str("100.0").unwrap();
+
+        let mut tx = Transaction {
+            client_id: 1,
+            transaction_id: 1,
+            r#type: TransactionType::Withdrawal,
+            amount: Some(Decimal::from_str("100.0").unwrap()),
+        };
+        account.process_transaction(tx);
+        assert_eq!(account.available, Decimal::from_str("0.0").unwrap());
+    }
+
+    #[test]
     pub fn test_dispute() {
         let mut account = Account::new(1);
 
@@ -241,6 +257,7 @@ mod tests {
         account.process_transaction(dispute_tx);
         assert_eq!(account.available, Decimal::from_str("0.0").unwrap());
         assert_eq!(account.held, Decimal::from_str("150.0").unwrap());
+        assert_eq!(account.get_total(), Decimal::from_str("150.0").unwrap());
     }
 
     #[test]
@@ -263,6 +280,7 @@ mod tests {
         account.process_transaction(dispute_tx);
         assert_eq!(account.available, Decimal::from_str("150.0").unwrap());
         assert_eq!(account.held, Decimal::from_str("0.0").unwrap());
+        assert_eq!(account.get_total(), Decimal::from_str("150.0").unwrap());
     }
 
     #[test]
@@ -292,6 +310,7 @@ mod tests {
         account.process_transaction(resolve_tx);
         assert_eq!(account.available, Decimal::from_str("150.0").unwrap());
         assert_eq!(account.held, Decimal::from_str("0.0").unwrap());
+        assert_eq!(account.get_total(), Decimal::from_str("150.0").unwrap());
     }
 
     #[test]
