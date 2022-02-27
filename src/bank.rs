@@ -16,6 +16,7 @@ impl Bank {
             accounts: BTreeMap::new(),
         }
     }
+
     pub fn process_transactions(&mut self, transactions_file_path: &str) -> Result<(), Box<dyn Error>> {
         let mut reader = csv::ReaderBuilder::new()
             .trim(csv::Trim::All)
@@ -42,5 +43,11 @@ impl Bank {
         };
         account.process_transaction(tx);
     }
-    pub fn print(&self) {}
+
+    pub fn print(&self) {
+        println!("client, available, held, total, locked");
+        for account in self.accounts.values() {
+            account.print();
+        }
+    }
 }

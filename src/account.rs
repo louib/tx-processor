@@ -14,7 +14,7 @@ pub struct Account {
 
     // A cache of the transactions that were processed
     // for this account.
-    pub transactions: BTreeMap<u32, Transaction>,
+    transactions: BTreeMap<u32, Transaction>,
 
     // A cache of the IDs of the disputed transactions.
     pub disputed_transactions: HashSet<u32>,
@@ -102,6 +102,17 @@ impl Account {
 
     pub fn get_total(&self) -> f64 {
         self.available + self.held
+    }
+
+    pub fn print(&self) {
+        println!(
+            "{}, {}, {}, {}, {}",
+            self.client_id,
+            self.available,
+            self.held,
+            self.get_total(),
+            self.locked
+        );
     }
 }
 
