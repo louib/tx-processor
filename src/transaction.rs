@@ -3,6 +3,7 @@ use serde::{Deserialize, Deserializer};
 
 #[derive(Deserialize)]
 #[derive(Debug)]
+#[derive(Clone)]
 pub struct Transaction {
     #[serde(deserialize_with = "crate::transaction::TransactionType::deserialize")]
     pub r#type: TransactionType,
@@ -25,6 +26,7 @@ impl Transaction {
 }
 
 #[derive(Debug)]
+#[derive(Clone)]
 #[derive(PartialEq)]
 pub enum TransactionType {
     Deposit,
@@ -36,8 +38,8 @@ pub enum TransactionType {
 impl TransactionType {
     // TODO this boilerplate code could be replaced by using a macro like
     // https://docs.rs/strum_macros/0.24.0/strum_macros/derive.EnumString.html,
-    // but I'm concerned about SDLC attacks using Rust macros, so I'd like to review
-    // the crate before using it.
+    // but I'm concerned about supply-chain attacks using Rust macros, so
+    // I'd like to review the crate before using it.
     pub fn from_string(transaction_type: &str) -> Result<TransactionType, String> {
         if transaction_type == "deposit" {
             return Ok(TransactionType::Deposit);

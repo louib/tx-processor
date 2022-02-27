@@ -41,11 +41,19 @@ impl Account {
 
         match tx.get_type() {
             TransactionType::Deposit => {
+                if self.transactions.contains_key(&tx.transaction_id) {
+                    return;
+                }
+
                 // TODO verify that this transaction was never processed?
                 self.available += tx.amount.unwrap();
                 self.transactions.insert(tx.transaction_id, tx);
             }
             TransactionType::Withdrawal => {
+                if self.transactions.contains_key(&tx.transaction_id) {
+                    return;
+                }
+
                 // TODO verify that this transaction was never processed?
                 if self.available < tx.amount.unwrap() {
                     eprintln!("Could not process transaction: Insufficient amount.");
@@ -139,6 +147,21 @@ mod tests {
     }
 
     #[test]
+    pub fn test_duplicate_deposit() {
+        let mut account = Account::new(1);
+        let mut tx = Transaction {
+            client_id: 1,
+            transaction_id: 1,
+            r#type: TransactionType::Deposit,
+            amount: Some(Decimal::from_str("100.0").unwrap()),
+        };
+        account.process_transaction(tx.clone());
+        // We will ignore a transaction that was already processed.
+        account.process_transaction(tx);
+        assert_eq!(account.available, Decimal::from_str("100.0").unwrap());
+    }
+
+    #[test]
     pub fn test_withdraw() {
         let mut account = Account::new(1);
         account.available = Decimal::from_str("100.0").unwrap();
@@ -149,6 +172,23 @@ mod tests {
             r#type: TransactionType::Withdrawal,
             amount: Some(Decimal::from_str("50.0").unwrap()),
         };
+        account.process_transaction(tx);
+        assert_eq!(account.available, Decimal::from_str("50.0").unwrap());
+    }
+
+    #[test]
+    pub fn test_duplicate_withdraw() {
+        let mut account = Account::new(1);
+        account.available = Decimal::from_str("100.0").unwrap();
+
+        let mut tx = Transaction {
+            client_id: 1,
+            transaction_id: 1,
+            r#type: TransactionType::Withdrawal,
+            amount: Some(Decimal::from_str("50.0").unwrap()),
+        };
+        account.process_transaction(tx.clone());
+        // We will ignore a transaction that was already processed.
         account.process_transaction(tx);
         assert_eq!(account.available, Decimal::from_str("50.0").unwrap());
     }
@@ -311,7 +351,7 @@ mod tests {
         for i in 0..1_000_000 {
             let mut chargeback_tx = Transaction {
                 client_id: 1,
-                transaction_id: 1,
+                transaction_id: i,
                 r#type: TransactionType::Deposit,
                 amount: Some(Decimal::from_str("0.1").unwrap()),
             };
