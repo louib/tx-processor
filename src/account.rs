@@ -20,6 +20,16 @@ pub struct Account {
     pub disputed_transactions: HashSet<u32>,
 }
 impl Account {
+    pub fn new(client_id: u16) -> Account {
+        Account {
+            client_id,
+            held: 0.0,
+            available: 0.0,
+            locked: false,
+            transactions: BTreeMap::new(),
+            disputed_transactions: HashSet::new(),
+        }
+    }
     pub fn process_transaction(&mut self, tx: Transaction) -> Result<(), String> {
         // Currently there is no way to process any transaction once the
         // account was locked.

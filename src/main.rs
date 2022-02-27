@@ -3,6 +3,7 @@ use std::error::Error;
 use std::io;
 
 mod account;
+mod bank;
 mod transaction;
 
 use transaction::Transaction;
