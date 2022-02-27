@@ -13,12 +13,6 @@ pub struct Transaction {
     #[serde(rename = "tx")]
     pub transaction_id: u32,
 
-    // There is surely a way to deserialize this field without implementing
-    // the deserializing function.
-    // See https://crates.io/crates/rust-decimal#user-content-serde-with-arbitrary-precision
-    #[serde(deserialize_with = "crate::transaction::Transaction::deserialize_amount")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(default)]
     pub amount: Option<Decimal>,
 }
 impl Transaction {
@@ -27,18 +21,6 @@ impl Transaction {
     }
     pub fn is_disputable(&self) -> bool {
         return [TransactionType::Deposit, TransactionType::Withdrawal].contains(self.get_type());
-    }
-
-    pub fn deserialize_amount<'de, D>(deserializer: D) -> Result<Option<Decimal>, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let buf = String::deserialize(deserializer)?;
-
-        match Decimal::from_str(&buf) {
-            Ok(b) => Ok(Some(b)),
-            Err(e) => Err(e).map_err(serde::de::Error::custom),
-        }
     }
 }
 
@@ -135,7 +117,6 @@ mod tests {
     pub fn deserialize_single_transaction(serialized_tx: &str) -> Result<Transaction, String> {
         let header: &str = "type,client,tx,amount";
         let csv_file: String = format!("{}\n{}", header, serialized_tx);
-        println!("{}", csv_file);
 
         let mut reader = csv::ReaderBuilder::new()
             .has_headers(true)
