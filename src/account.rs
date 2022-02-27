@@ -109,9 +109,9 @@ impl Account {
         println!(
             "{}, {}, {}, {}, {}",
             self.client_id,
-            self.available,
-            self.held,
-            self.get_total(),
+            self.available.normalize(),
+            self.held.normalize(),
+            self.get_total().normalize(),
             self.locked
         );
     }
