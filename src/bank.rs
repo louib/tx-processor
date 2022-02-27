@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use std::error::Error;
 use std::io;
 
@@ -8,12 +8,12 @@ use crate::transaction::Transaction;
 pub struct Bank {
     /// The accounts handled by the bank, indexed
     /// by customer ID.
-    pub accounts: BTreeMap<u16, Account>,
+    pub accounts: HashMap<u16, Account>,
 }
 impl Bank {
     pub fn new() -> Bank {
         Bank {
-            accounts: BTreeMap::new(),
+            accounts: HashMap::new(),
         }
     }
 
@@ -31,7 +31,7 @@ impl Bank {
 
     pub fn process_transaction(&mut self, tx: Transaction) {
         // Creating a new account if it doesn't exist could be made more efficient by
-        // using the BTreeMap::try_insert function, so that only one search is performed
+        // using the HashMap::try_insert function, so that only one search is performed
         // on the B-Tree. This feature is still experimental so I decided not to use it
         // at the moment.
         let account: &mut Account = match self.accounts.get_mut(&tx.client_id) {
@@ -46,6 +46,7 @@ impl Bank {
 
     pub fn print(&self) {
         println!("client, available, held, total, locked");
+
         for account in self.accounts.values() {
             account.print();
         }
