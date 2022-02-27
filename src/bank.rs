@@ -23,14 +23,12 @@ impl Bank {
             .from_path(transactions_file_path)?;
         for result in reader.deserialize() {
             let tx: Transaction = result.expect("Could not deserialize transaction.");
-            // TODO add the account if it doesn't exist
-            // TODO process the transactions
-            println!("{:?}", tx);
+            self.process_transaction(tx);
         }
         Ok(())
     }
 
-    pub fn process_transaction(&mut self, tx: Transaction) -> Result<(), String> {
+    pub fn process_transaction(&mut self, tx: Transaction) {
         // Creating a new account if it doesn't exist could be made more efficient by
         // using the BTreeMap::try_insert function, so that only one search is performed
         // on the B-Tree. This feature is still experimental so I decided not to use it
@@ -38,14 +36,11 @@ impl Bank {
         let account: &mut Account = match self.accounts.get_mut(&tx.client_id) {
             Some(a) => a,
             None => {
-                self.accounts
-                    .insert(tx.client_id, Account::new(tx.client_id))
-                    .unwrap();
+                self.accounts.insert(tx.client_id, Account::new(tx.client_id));
                 self.accounts.get_mut(&tx.client_id).unwrap()
             }
         };
-        account.process_transaction(tx)?;
-        Ok(())
+        account.process_transaction(tx);
     }
     pub fn print(&self) {}
 }

@@ -30,12 +30,14 @@ impl Account {
             disputed_transactions: HashSet::new(),
         }
     }
-    pub fn process_transaction(&mut self, tx: Transaction) -> Result<(), String> {
-        // Currently there is no way to process any transaction once the
+    pub fn process_transaction(&mut self, tx: Transaction) {
+        // Currently there is no way to process a transaction once the
         // account was locked.
         if self.locked {
-            return Err("Could not process transaction: The account is locked.".to_string());
+            eprintln!("Could not process transaction: The account is locked.");
+            return;
         }
+
         match tx.get_type() {
             TransactionType::Deposit => {
                 // TODO verify that this transaction was never processed?
@@ -45,22 +47,22 @@ impl Account {
             TransactionType::Withdrawal => {
                 // TODO verify that this transaction was never processed?
                 if self.available < tx.amount as f64 {
-                    return Err("Could not process transaction: Insufficient amount.".to_string());
+                    eprintln!("Could not process transaction: Insufficient amount.");
+                    return;
                 }
+
                 self.available -= tx.amount as f64;
                 self.transactions.insert(tx.transaction_id, tx);
             }
             TransactionType::Dispute => {
                 let disputed_tx = match self.transactions.get(&tx.transaction_id) {
                     Some(tx) => tx,
-                    None => return Ok(()),
+                    None => return,
                 };
 
                 if !disputed_tx.is_disputable() {
-                    return Err(format!(
-                        "Transaction {} is not disputable.",
-                        disputed_tx.transaction_id
-                    ));
+                    eprintln!("Transaction {} is not disputable.", disputed_tx.transaction_id);
+                    return;
                 }
 
                 self.available -= disputed_tx.amount as f64;
@@ -70,11 +72,11 @@ impl Account {
             TransactionType::Resolve => {
                 let disputed_tx = match self.transactions.get(&tx.transaction_id) {
                     Some(tx) => tx,
-                    None => return Ok(()),
+                    None => return,
                 };
 
                 if !self.disputed_transactions.contains(&tx.transaction_id) {
-                    return Ok(());
+                    return;
                 }
 
                 self.available += disputed_tx.amount as f64;
@@ -84,11 +86,11 @@ impl Account {
             TransactionType::Chargeback => {
                 let disputed_tx = match self.transactions.get(&tx.transaction_id) {
                     Some(tx) => tx,
-                    None => return Ok(()),
+                    None => return,
                 };
 
                 if !self.disputed_transactions.contains(&tx.transaction_id) {
-                    return Ok(());
+                    return;
                 }
 
                 self.held -= disputed_tx.amount as f64;
@@ -96,8 +98,8 @@ impl Account {
                 self.locked = true;
             }
         };
-        Ok(())
     }
+
     pub fn get_total(&self) -> f64 {
         self.available + self.held
     }
@@ -123,7 +125,7 @@ mod tests {
             r#type: TransactionType::Deposit,
             amount: 100.0,
         };
-        account.process_transaction(tx).unwrap();
+        account.process_transaction(tx);
         assert_eq!(account.available, 100.0);
     }
 
@@ -143,7 +145,7 @@ mod tests {
             r#type: TransactionType::Withdrawal,
             amount: 50.0,
         };
-        account.process_transaction(tx).unwrap();
+        account.process_transaction(tx);
         assert_eq!(account.available, 50.0);
     }
 
@@ -163,9 +165,7 @@ mod tests {
             r#type: TransactionType::Withdrawal,
             amount: 150.0,
         };
-        if let Ok(()) = account.process_transaction(tx) {
-            panic!("Should not allow to withdraw more funds than available.");
-        }
+        account.process_transaction(tx);
         assert_eq!(account.available, 100.0);
     }
 
@@ -192,8 +192,8 @@ mod tests {
             // FIXME I think the amount should be optional?
             amount: 150.0,
         };
-        account.process_transaction(tx).unwrap();
-        account.process_transaction(dispute_tx).unwrap();
+        account.process_transaction(tx);
+        account.process_transaction(dispute_tx);
         assert_eq!(account.available, 0.0);
         assert_eq!(account.held, 150.0);
     }
@@ -221,8 +221,8 @@ mod tests {
             // FIXME I think the amount should be optional?
             amount: 150.0,
         };
-        account.process_transaction(tx).unwrap();
-        account.process_transaction(dispute_tx).unwrap();
+        account.process_transaction(tx);
+        account.process_transaction(dispute_tx);
         assert_eq!(account.available, 150.0);
         assert_eq!(account.held, 0.0);
     }
@@ -257,9 +257,9 @@ mod tests {
             // FIXME I think the amount should be optional?
             amount: 150.0,
         };
-        account.process_transaction(tx).unwrap();
-        account.process_transaction(dispute_tx).unwrap();
-        account.process_transaction(resolve_tx).unwrap();
+        account.process_transaction(tx);
+        account.process_transaction(dispute_tx);
+        account.process_transaction(resolve_tx);
         assert_eq!(account.available, 150.0);
         assert_eq!(account.held, 0.0);
     }
@@ -281,7 +281,7 @@ mod tests {
             // FIXME I think the amount should be optional?
             amount: 150.0,
         };
-        account.process_transaction(resolve_tx).unwrap();
+        account.process_transaction(resolve_tx);
         assert_eq!(account.available, 100.0);
         assert_eq!(account.held, 0.0);
     }
@@ -316,9 +316,9 @@ mod tests {
             // FIXME I think the amount should be optional?
             amount: 150.0,
         };
-        account.process_transaction(tx).unwrap();
-        account.process_transaction(dispute_tx).unwrap();
-        account.process_transaction(chargeback_tx).unwrap();
+        account.process_transaction(tx);
+        account.process_transaction(dispute_tx);
+        account.process_transaction(chargeback_tx);
         assert_eq!(account.available, 0.0);
         assert_eq!(account.held, 0.0);
         assert_eq!(account.locked, true);
@@ -341,7 +341,7 @@ mod tests {
             // FIXME I think the amount should be optional?
             amount: 150.0,
         };
-        account.process_transaction(chargeback_tx).unwrap();
+        account.process_transaction(chargeback_tx);
         assert_eq!(account.available, 100.0);
         assert_eq!(account.held, 0.0);
         assert_eq!(account.locked, false);
