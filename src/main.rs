@@ -1,26 +1,8 @@
 use std::env;
-use std::error::Error;
-use std::io;
 
 mod account;
 mod bank;
 mod transaction;
-
-use transaction::Transaction;
-
-fn process_transactions(transactions_file_path: &str) -> Result<(), Box<dyn Error>> {
-    let mut reader = csv::ReaderBuilder::new()
-        .trim(csv::Trim::All)
-        .has_headers(true)
-        .from_path(transactions_file_path)?;
-    for result in reader.deserialize() {
-        let tx: Transaction = result.expect("Could not deserialize transaction.");
-        // TODO add the account if it doesn't exist
-        // TODO process the transactions
-        println!("{:?}", tx);
-    }
-    Ok(())
-}
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -29,7 +11,11 @@ fn main() {
     }
     let transactions_file_path = &args[1];
 
-    if let Err(err) = process_transactions(transactions_file_path) {
+    let mut bank = bank::Bank::new();
+
+    if let Err(err) = bank.process_transactions(transactions_file_path) {
         panic!("Error while processing the transactions: {}", err);
     }
+
+    bank.print()
 }
