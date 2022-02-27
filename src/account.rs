@@ -45,23 +45,27 @@ impl Account {
                     return;
                 }
 
-                // TODO verify that this transaction was never processed?
+                // TODO make this critical section atomic.
+                // BEGIN CRITICAL SECTION
                 self.available += tx.amount.unwrap();
                 self.transactions.insert(tx.transaction_id, tx);
+                // END CRITICAL SECTION
             }
             TransactionType::Withdrawal => {
                 if self.transactions.contains_key(&tx.transaction_id) {
                     return;
                 }
 
-                // TODO verify that this transaction was never processed?
                 if self.available < tx.amount.unwrap() {
                     eprintln!("Could not process transaction: Insufficient amount.");
                     return;
                 }
 
+                // TODO make this critical section atomic.
+                // BEGIN CRITICAL SECTION
                 self.available -= tx.amount.unwrap();
                 self.transactions.insert(tx.transaction_id, tx);
+                // END CRITICAL SECTION
             }
             TransactionType::Dispute => {
                 let disputed_tx = match self.transactions.get(&tx.transaction_id) {
@@ -74,9 +78,12 @@ impl Account {
                     return;
                 }
 
+                // TODO make this critical section atomic.
+                // BEGIN CRITICAL SECTION
                 self.available -= disputed_tx.amount.unwrap();
                 self.held += disputed_tx.amount.unwrap();
                 self.disputed_transactions.insert(tx.transaction_id.clone());
+                // END CRITICAL SECTION
             }
             TransactionType::Resolve => {
                 let disputed_tx = match self.transactions.get(&tx.transaction_id) {
@@ -88,9 +95,12 @@ impl Account {
                     return;
                 }
 
+                // TODO make this critical section atomic.
+                // BEGIN CRITICAL SECTION
                 self.available += disputed_tx.amount.unwrap();
                 self.held -= disputed_tx.amount.unwrap();
                 self.disputed_transactions.remove(&tx.transaction_id);
+                // END CRITICAL SECTION
             }
             TransactionType::Chargeback => {
                 let disputed_tx = match self.transactions.get(&tx.transaction_id) {
@@ -102,9 +112,12 @@ impl Account {
                     return;
                 }
 
+                // TODO make this critical section atomic.
+                // BEGIN CRITICAL SECTION
                 self.held -= disputed_tx.amount.unwrap();
                 self.disputed_transactions.remove(&tx.transaction_id);
                 self.locked = true;
+                // END CRITICAL SECTION
             }
         };
     }

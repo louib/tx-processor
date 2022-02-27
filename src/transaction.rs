@@ -41,6 +41,7 @@ impl TransactionType {
     // but I'm concerned about supply-chain attacks using Rust macros, so
     // I'd like to review the crate before using it.
     pub fn from_string(transaction_type: &str) -> Result<TransactionType, String> {
+        let transaction_type = transaction_type.to_lowercase();
         if transaction_type == "deposit" {
             return Ok(TransactionType::Deposit);
         }
@@ -91,6 +92,13 @@ mod tests {
     pub fn test_parse_invalid_transaction_type() {
         let serialized_tx: &str = "invalid,1,1,1.0";
         deserialize_single_transaction(serialized_tx);
+    }
+
+    #[test]
+    pub fn test_parse_uppercase_transaction_type() {
+        let serialized_tx: &str = "Deposit,1,1,1.0";
+        let tx: Transaction = deserialize_single_transaction(serialized_tx).unwrap();
+        assert_eq!(*tx.get_type(), TransactionType::Deposit);
     }
 
     #[test]
