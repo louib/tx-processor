@@ -306,4 +306,20 @@ mod tests {
         assert_eq!(account.held, 0.0);
         assert_eq!(account.locked, false);
     }
+
+    #[test]
+    pub fn test_precision() {
+        let mut account = Account::new(1);
+        account.available = 0.1;
+
+        let mut tx = Transaction {
+            client_id: 1,
+            transaction_id: 1,
+            r#type: TransactionType::Deposit,
+            amount: 0.2,
+        };
+
+        account.process_transaction(tx);
+        assert_eq!(account.available, 0.3);
+    }
 }
