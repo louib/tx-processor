@@ -8,7 +8,7 @@ Simple transaction processor in Rust.
 * Errors encountered when processing transactions are currently logged to `stderr`, but are not acted upon, or logged
   to a log file for inspection.
 * Errors in the formatting of the CSV file containing the transactions are currently not handled.
-* The records in the transactions CSV file are read using [`csv::Reader::serialize`](https://docs.rs/csv/1.1.6/csv/struct.Reader.html#method.deserialize).
+* The records in the transactions CSV file are read using [`csv::Reader::deserialize`](https://docs.rs/csv/1.1.6/csv/struct.Reader.html#method.deserialize).
   The buffer size used by the `csv::Reader` can be configured using the [`buffer_capacity`](https://docs.rs/csv/1.1.6/csv/struct.Reader.html#method.deserialize)
   function, but the default value is being used at the moment. Benchmarking could determine if a different value is more appropriate.
 * The transaction processing functions are currently not thread-safe.
