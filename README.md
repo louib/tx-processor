@@ -1,4 +1,7 @@
 # tx-processor
+![Tests status](https://github.com/louib/tx-processor/workflows/tests/badge.svg)
+![Code formatting](https://github.com/louib/tx-processor/workflows/formatting/badge.svg)
+
 Simple transaction processor in Rust.
 
 ## Implementation details
