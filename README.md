@@ -13,7 +13,7 @@ Simple transaction processor in Rust.
   function, but the default value is being used at the moment. Benchmarking could determine if a different value is more appropriate.
 * The transaction processing functions are currently not thread-safe.
 * Atomicity is currently not guaranteed during transaction processing, but the critical sections have been identified in the code.
-* Decimal precision is currently configured to 4 four digits, but can be changed using the `DECIMAL_PRECISION` const.
+* Decimal precision is currently configured to 4 digits, but can be changed using the `DECIMAL_PRECISION` const.
 * At the moment, accounts that are locked will no longer process transactions.
 
 ## Usage
