@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::error::Error;
-use std::io;
 
 use crate::account::Account;
 use crate::transaction::Transaction;
