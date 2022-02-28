@@ -4,12 +4,12 @@ on:
   pull_request:
     types: [opened, updated, synchronize, ready_for_review, review_requested]
     branches:
-      - master
+      - main
     paths:
       - "**"
   push:
     branches:
-      - master
+      - main
 
 jobs:
   tests:
