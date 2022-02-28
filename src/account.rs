@@ -150,7 +150,7 @@ mod tests {
     #[test]
     pub fn test_deposit() {
         let mut account = Account::new(1);
-        let mut tx = Transaction {
+        let tx = Transaction {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Deposit,
@@ -163,7 +163,7 @@ mod tests {
     #[test]
     pub fn test_duplicate_deposit() {
         let mut account = Account::new(1);
-        let mut tx = Transaction {
+        let tx = Transaction {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Deposit,
@@ -180,7 +180,7 @@ mod tests {
         let mut account = Account::new(1);
         account.available = Decimal::from_str("100.0").unwrap();
 
-        let mut tx = Transaction {
+        let tx = Transaction {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Withdrawal,
@@ -195,7 +195,7 @@ mod tests {
         let mut account = Account::new(1);
         account.available = Decimal::from_str("100.0").unwrap();
 
-        let mut tx = Transaction {
+        let tx = Transaction {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Withdrawal,
@@ -212,7 +212,7 @@ mod tests {
         let mut account = Account::new(1);
         account.available = Decimal::from_str("100.0").unwrap();
 
-        let mut tx = Transaction {
+        let tx = Transaction {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Withdrawal,
@@ -227,7 +227,7 @@ mod tests {
         let mut account = Account::new(1);
         account.available = Decimal::from_str("100.0").unwrap();
 
-        let mut tx = Transaction {
+        let tx = Transaction {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Withdrawal,
@@ -241,13 +241,13 @@ mod tests {
     pub fn test_dispute() {
         let mut account = Account::new(1);
 
-        let mut tx = Transaction {
+        let tx = Transaction {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Deposit,
             amount: Some(Decimal::from_str("150.0").unwrap()),
         };
-        let mut dispute_tx = Transaction {
+        let dispute_tx = Transaction {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Dispute,
@@ -264,13 +264,13 @@ mod tests {
     pub fn test_dispute_invalid_transaction() {
         let mut account = Account::new(1);
 
-        let mut tx = Transaction {
+        let tx = Transaction {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Deposit,
             amount: Some(Decimal::from_str("150.0").unwrap()),
         };
-        let mut dispute_tx = Transaction {
+        let dispute_tx = Transaction {
             client_id: 1,
             transaction_id: 2,
             r#type: TransactionType::Dispute,
@@ -287,19 +287,19 @@ mod tests {
     pub fn test_resolve() {
         let mut account = Account::new(1);
 
-        let mut tx = Transaction {
+        let tx = Transaction {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Deposit,
             amount: Some(Decimal::from_str("150.0").unwrap()),
         };
-        let mut dispute_tx = Transaction {
+        let dispute_tx = Transaction {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Dispute,
             amount: Some(Decimal::from_str("150.0").unwrap()),
         };
-        let mut resolve_tx = Transaction {
+        let resolve_tx = Transaction {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Resolve,
@@ -318,7 +318,7 @@ mod tests {
         let mut account = Account::new(1);
         account.available = Decimal::from_str("100.0").unwrap();
 
-        let mut resolve_tx = Transaction {
+        let resolve_tx = Transaction {
             client_id: 1,
             transaction_id: 7,
             r#type: TransactionType::Resolve,
@@ -333,19 +333,19 @@ mod tests {
     pub fn test_chargeback() {
         let mut account = Account::new(1);
 
-        let mut tx = Transaction {
+        let tx = Transaction {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Deposit,
             amount: Some(Decimal::from_str("150.0").unwrap()),
         };
-        let mut dispute_tx = Transaction {
+        let dispute_tx = Transaction {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Dispute,
             amount: None,
         };
-        let mut chargeback_tx = Transaction {
+        let chargeback_tx = Transaction {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Chargeback,
@@ -364,7 +364,7 @@ mod tests {
         let mut account = Account::new(1);
         account.available = Decimal::from_str("100.0").unwrap();
 
-        let mut chargeback_tx = Transaction {
+        let chargeback_tx = Transaction {
             client_id: 1,
             transaction_id: 1,
             r#type: TransactionType::Chargeback,
@@ -381,7 +381,7 @@ mod tests {
         let mut account = Account::new(1);
 
         for i in 0..1_000_000 {
-            let mut chargeback_tx = Transaction {
+            let chargeback_tx = Transaction {
                 client_id: 1,
                 transaction_id: i,
                 r#type: TransactionType::Deposit,

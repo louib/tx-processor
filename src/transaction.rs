@@ -91,7 +91,7 @@ mod tests {
     #[should_panic]
     pub fn test_parse_invalid_transaction_type() {
         let serialized_tx: &str = "invalid,1,1,1.0";
-        deserialize_single_transaction(serialized_tx);
+        deserialize_single_transaction(serialized_tx).unwrap();
     }
 
     #[test]
@@ -105,6 +105,7 @@ mod tests {
     pub fn test_parse_with_spaces() {
         let serialized_tx: &str = "deposit, 1, 1, 1.0";
         let tx: Transaction = deserialize_single_transaction(serialized_tx).unwrap();
+        assert_eq!(*tx.get_type(), TransactionType::Deposit);
     }
 
     #[test]
