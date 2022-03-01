@@ -79,6 +79,11 @@ impl Account {
                     return;
                 }
 
+                if self.disputed_transactions.contains(&tx.transaction_id) {
+                    eprintln!("Transaction {} is already disputed.", disputed_tx.transaction_id);
+                    return;
+                }
+
                 // TODO make this critical section atomic.
                 // BEGIN CRITICAL SECTION
                 self.available -= disputed_tx.amount.unwrap();
@@ -254,6 +259,30 @@ mod tests {
             amount: None,
         };
         account.process_transaction(tx);
+        account.process_transaction(dispute_tx);
+        assert_eq!(account.available, Decimal::from_str("0.0").unwrap());
+        assert_eq!(account.held, Decimal::from_str("150.0").unwrap());
+        assert_eq!(account.get_total(), Decimal::from_str("150.0").unwrap());
+    }
+
+    #[test]
+    pub fn test_duplicate_dispute() {
+        let mut account = Account::new(1);
+
+        let tx = Transaction {
+            client_id: 1,
+            transaction_id: 1,
+            r#type: TransactionType::Deposit,
+            amount: Some(Decimal::from_str("150.0").unwrap()),
+        };
+        let dispute_tx = Transaction {
+            client_id: 1,
+            transaction_id: 1,
+            r#type: TransactionType::Dispute,
+            amount: None,
+        };
+        account.process_transaction(tx);
+        account.process_transaction(dispute_tx.clone());
         account.process_transaction(dispute_tx);
         assert_eq!(account.available, Decimal::from_str("0.0").unwrap());
         assert_eq!(account.held, Decimal::from_str("150.0").unwrap());
